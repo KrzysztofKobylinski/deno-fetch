@@ -1,16 +1,11 @@
 import * as log from 'http://deno.land/std/log/mod.ts'
 
-log.setup({
-  handlers: {
-    console: new log.handlers.ConsoleHandler("DEBUG"),
-  },
-  loggers: {
-    default: {
-      level: 'DEBUG',
-      handlers: ['console'],
-    },
-  }
-})
+interface Launch {
+  flightNumber: number;
+  mission: string;
+}
+const launches = new Map<number, Launch>();
+
 async function downloadLaunchData() {
   log.info('downloading launch data...')
   const response = await fetch('https://api.spacexdata.com/v3/launches', {
@@ -23,7 +18,14 @@ async function downloadLaunchData() {
   }
 
   const launchData = await response.json();
-  // console.log(launchData)
+  for (const launch of launchData) {
+    const flightData = {
+      flightNumber: launch['flight_number'],
+      mission: launch['mission_name'],
+    };
+    launches.set(flightData.flightNumber, flightData)
+    log.info(JSON.stringify(flightData))
+  }
 }
 
 await downloadLaunchData();
